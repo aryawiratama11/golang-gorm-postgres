@@ -116,7 +116,7 @@ func (ac *AuthController) SignInUser(ctx *gin.Context) {
 	ctx.SetCookie("refresh_token", refresh_token, config.RefreshTokenMaxAge*60, "/", "localhost", false, true)
 	ctx.SetCookie("logged_in", "true", config.AccessTokenMaxAge*60, "/", "localhost", false, false)
 
-	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": access_token})
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": access_token, "refresh_token" : refresh_token})
 }
 
 // Refresh Access Token
@@ -126,7 +126,7 @@ func (ac *AuthController) RefreshAccessToken(ctx *gin.Context) {
 	cookie, err := ctx.Cookie("refresh_token")
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": message})
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail 1", "message": message})
 		return
 	}
 
@@ -134,20 +134,20 @@ func (ac *AuthController) RefreshAccessToken(ctx *gin.Context) {
 
 	sub, err := utils.ValidateToken(cookie, config.RefreshTokenPublicKey)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail 2", "message": err.Error()})
 		return
 	}
 
 	var user models.User
 	result := ac.DB.First(&user, "id = ?", fmt.Sprint(sub))
 	if result.Error != nil {
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": "the user belonging to this token no logger exists"})
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail 3", "message": "the user belonging to this token no logger exists"})
 		return
 	}
 
 	access_token, err := utils.CreateToken(config.AccessTokenExpiresIn, user.ID, config.AccessTokenPrivateKey)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail 4", "message": err.Error()})
 		return
 	}
 
